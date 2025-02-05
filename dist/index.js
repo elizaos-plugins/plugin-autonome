@@ -8,7 +8,7 @@ import {
 } from "@elizaos/core";
 function isLaunchAgentContent(content) {
   elizaLogger.log("Content for launchAgent", content);
-  return typeof content.name === "string" && typeof content.config === "string";
+  return typeof content === "object" && content !== null && "name" in content && "config" in content && typeof content.name === "string" && typeof content.config === "string";
 }
 var launchTemplate = `Respond with a JSON markdown block containing only the extracted values. Use null for any values that cannot be determined.
 
@@ -34,13 +34,14 @@ var launchAgent_default = {
   description: "Launch an Eliza agent",
   handler: async (runtime, message, state, _options, callback) => {
     elizaLogger.log("Starting LAUNCH_AGENT handler...");
-    if (!state) {
-      state = await runtime.composeState(message);
+    let currentState = state;
+    if (!currentState) {
+      currentState = await runtime.composeState(message);
     } else {
-      state = await runtime.updateRecentMessageState(state);
+      currentState = await runtime.updateRecentMessageState(currentState);
     }
     const launchContext = composeContext({
-      state,
+      state: currentState,
       template: launchTemplate
     });
     const content = await generateObjectDeprecated({
@@ -82,12 +83,12 @@ var launchAgent_default = {
     };
     try {
       const resp = await sendPostRequest();
-      if (resp && resp.data && resp.data.app && resp.data.app.id) {
+      if (resp?.data?.app?.id) {
         elizaLogger.log(
           "Launching successful, please find your agent on"
         );
         elizaLogger.log(
-          "https://dev.autonome.fun/autonome/" + resp.data.app.id + "/details"
+          `https://dev.autonome.fun/autonome/${resp.data.app.id}/details`
         );
       }
       if (callback) {
@@ -95,7 +96,7 @@ var launchAgent_default = {
           text: `Successfully launch agent ${content.name}`,
           content: {
             success: true,
-            appId: "https://dev.autonome.fun/autonome/" + resp.data.app.id + "/details"
+            appId: `https://dev.autonome.fun/autonome/${resp.data.app.id}/details`
           }
         });
       }
