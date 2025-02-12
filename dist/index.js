@@ -33,6 +33,7 @@ var launchAgent_default = {
   },
   description: "Launch an Eliza agent",
   handler: async (runtime, message, state, _options, callback) => {
+    var _a, _b;
     elizaLogger.log("Starting LAUNCH_AGENT handler...");
     let currentState = state;
     if (!currentState) {
@@ -83,7 +84,7 @@ var launchAgent_default = {
     };
     try {
       const resp = await sendPostRequest();
-      if (resp?.data?.app?.id) {
+      if ((_b = (_a = resp == null ? void 0 : resp.data) == null ? void 0 : _a.app) == null ? void 0 : _b.id) {
         elizaLogger.log(
           "Launching successful, please find your agent on"
         );
